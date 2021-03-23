@@ -13,7 +13,7 @@
 #define NBLINKS_MODEM_FAILURE 3
 
 volatile uint16_t VBAT = 0;
-volatile uint16_t NBLINKS = 0;
+volatile uint16_t NBLINKS = NBLINKS_NORMAL;
 
 void heartBeat(void *arg) {
 
@@ -22,11 +22,15 @@ void heartBeat(void *arg) {
 
     while(1) {
 
-        /* Blink on (output low) */
-        gpio_set_level(LED_GPIO, 0);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        /* Blink NBLINKS times */
+        for (int i=0; i<NBLINKS; i++) {
+            gpio_set_level(LED_GPIO, 0);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            gpio_set_level(LED_GPIO, 1);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
 
-        /* Blink off (output high) */
+        /* Off for one second */
         gpio_set_level(LED_GPIO, 1);
         vTaskDelay(900 / portTICK_PERIOD_MS);
 
