@@ -16,6 +16,11 @@
 // global buffers
 uint8_t MODEM_BUF[MODEM_BUF_SIZE];
 
+// TODO handle volatile
+bool FIX = false;
+char LAT[16];
+char LON[16];
+
 // forward declarations
 static void _send_command(const char*);
 static bool _confirm_response(const char*, uint64_t);
@@ -178,25 +183,23 @@ bool modem_connect_bearer(void) {
 
 }
 
-bool modem_post_temperature(float temp) {
+bool modem_post_data(char *payload) {
 
     // HTTP POST
 
     char ATstring[30];
-    char payload[30];
 
     _send_confirm("AT+HTTPTERM", "OK", 1000);   // just in case
     if (!_send_confirm("AT+HTTPINIT", "OK", 1000)) {printf("cp1\n"); return false;}
 
     if (!_send_confirm("AT+HTTPPARA=\"CID\",1", "OK", 1000)) {printf("cp2\n"); return false;}
 
-    if (!_send_confirm("AT+HTTPPARA=\"URL\",\"http://things.interstitial.coop/api/v1/AJgYBgE6k67FPz43dM1u/telemetry\"",
+    if (!_send_confirm("AT+HTTPPARA=\"URL\",\"http://things.interstitial.coop/api/v1/PwLlVcToTxDIw8sKaTI9/telemetry\"",
                         "OK", 1000)) {printf("cp3\n"); return false;}
 
     if (!_send_confirm("AT+HTTPPARA=\"CONTENT\",\"application/json\"", "OK", 1000))
         {printf("cp3.1\n"); return false;}
 
-    sprintf(payload, "{\"temperature\": %.3f}", temp);
     sprintf(ATstring, "AT+HTTPDATA=%d,10000", strlen(payload));  // do i need *any* delay here?
     if (!_send_confirm(ATstring, "DOWNLOAD", 5000)) {printf("cp4\n"); return false;}
     vTaskDelay(500 / portTICK_PERIOD_MS); // how short can this be?
@@ -374,7 +377,10 @@ bool modem_ip_is_gprsact(void) {
 
 bool modem_gps_enable(void) {
 
-    return _send_confirm("AT+CGNSPWR=1", "OK", 1000);
+    if (!_send_confirm("AT+SGPIO=0,4,1,1", "OK", 1000)) {return false;}
+    if (!_send_confirm("AT+CGNSPWR=1", "OK", 1000)) {return false;}
+
+    return true;
 
 }
 
@@ -382,12 +388,66 @@ bool modem_gps_get_nav(void) {
 
     // upon success, nav info is stored in MODEM_BUF
 
-    _send_command("AT+CGNSINF");    // nav info parsed from NMEA sentence
+    int len_received;
 
-    if (!_get_variable(1000)) return false;
-    if (!_confirm_response("OK", 1000)) return false;
+    _send_command("AT+CGNSINF");    // nav info parsed from NMEA sentence
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 500/portTICK_RATE_MS);
+    MODEM_BUF[len_received] = '\0';
+
+    //printf("CGNSINF = %s\n", MODEM_BUF);
+
+    return (len_received > 0);
+}
+
+bool modem_gps_parse_nav(void) {
+
+    char *run, *fix;
+    char *dt, *lat, *lon;
+    char *msl, *speed, *course, *fixmode;
+    char *reserved;
+    char *hdop, *pdop, *vdeop;
+    char *nsats, *nused, *nglonass;
+    char *cnomax, *hpa, *vpa;
+
+    char *ptr = (char *) MODEM_BUF;
+
+    char * redflag;
+
+    run = strsep(&ptr, ","); // token=\r\n+CGNSINF: 1
+    fix = strsep(&ptr, ","); // token=1
+    dt = strsep(&ptr, ","); // token=20210310063505.000
+    lat = strsep(&ptr, ","); // token=47.630245
+    lon = strsep(&ptr, ","); // token=-122.310556
+    msl = strsep(&ptr, ","); // token=121.400
+    speed = strsep(&ptr, ","); // token=0.00
+    course = strsep(&ptr, ","); // token=356.7
+    fixmode = strsep(&ptr, ","); // token=1
+    reserved = strsep(&ptr, ","); // token=
+    hdop = strsep(&ptr, ","); // token=0.9
+    pdop = strsep(&ptr, ","); // token=1.2
+    vdeop = strsep(&ptr, ","); // token=0.8
+    reserved = strsep(&ptr, ","); // token=
+    nsats = strsep(&ptr, ","); // token=20
+    nused = strsep(&ptr, ","); // token=9
+    nglonass = strsep(&ptr, ","); // token=2
+    reserved = strsep(&ptr, ","); // token=
+    cnomax = strsep(&ptr, ","); // token=37
+    hpa = strsep(&ptr, ","); // token=
+    vpa = strsep(&ptr, ","); // token=
+
+    printf("\nfix = %s\n", fix);
+    printf("nsats = %s\n", nsats);
+    printf("lat = %s\n", lat);
+    printf("lon = %s\n\n", lon);
+
+    FIX = !strcmp(fix, "1");
+    if (FIX) {
+        strcpy(LAT, lat);
+        strcpy(LON, lon);
+    }
 
     return true;
+
 }
 
 //// static functions

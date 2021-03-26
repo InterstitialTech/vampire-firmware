@@ -1,7 +1,7 @@
 #ifndef MODEM_H
 #define MODEM_H
 
-#include <stdbool.h>
+#include "common.h"
 
 #define MODEM_BUF_SIZE 1024
 
@@ -25,13 +25,14 @@ uint8_t *modem_get_buffer_data(void);
 char *modem_get_buffer_string(size_t, size_t);
 
 bool modem_connect_bearer(void);
-bool modem_post_temperature(float);
+bool modem_post_data(char*);
 bool modem_query_bearer(void);
 
 bool modem_get_rssi_ber(uint8_t*, uint8_t*);
 
 bool modem_gps_enable(void);
 bool modem_gps_get_nav(void);
+bool modem_gps_parse_nav(void);
 
 void modem_reset_ipstatus(void);
 
