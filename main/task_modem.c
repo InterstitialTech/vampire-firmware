@@ -106,7 +106,7 @@ void task_modem(void *arg) {
                 NBLINKS = NBLINKS_NORMAL;
             }
 
-            delay_ms(5000);
+            delay_ms(60000);
 
         } else {
             NBLINKS = NBLINKS_MODEM_FAILURE;
