@@ -13,6 +13,8 @@
 #define PIN_MODEM_TX            27                                                                                        
 #define PIN_MODEM_DTR           25                                                                                        
 
+#define ACCESS_TOKEN "TOKEN"    // replace TOKEN with the real Access Token
+
 // global buffers
 uint8_t MODEM_BUF[MODEM_BUF_SIZE];
 
@@ -194,8 +196,9 @@ bool modem_post_data(char *payload) {
 
     if (!_send_confirm("AT+HTTPPARA=\"CID\",1", "OK", 1000)) {printf("cp2\n"); return false;}
 
-    if (!_send_confirm("AT+HTTPPARA=\"URL\",\"http://things.interstitial.coop/api/v1/PwLlVcToTxDIw8sKaTI9/telemetry\"",
-                        "OK", 1000)) {printf("cp3\n"); return false;}
+    if (!_send_confirm("AT+HTTPPARA=\"URL\",\"http://things.interstitial.coop/api/v1/"
+                        ACCESS_TOKEN "/telemetry\"", "OK", 1000))
+                        {printf("cp3\n"); return false;}
 
     if (!_send_confirm("AT+HTTPPARA=\"CONTENT\",\"application/json\"", "OK", 1000))
         {printf("cp3.1\n"); return false;}
