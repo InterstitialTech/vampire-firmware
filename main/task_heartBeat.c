@@ -24,7 +24,7 @@ void task_heartBeat(void *arg) {
 
         /* Off for one second */
         gpio_set_level(PIN_LED, 1);
-        delay_ms(900 );
+        delay_ms(1900 );
 
     }
 
