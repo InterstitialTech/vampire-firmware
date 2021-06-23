@@ -38,10 +38,12 @@ void task_adc(void *arg) {
         VLIPO = counts_lipo * 0.0010586798822092942;    // 26.8 * 1.1 / 6.8 / 4095
 
         counts_rail = get_avg_adc_count(ADC_CHANNEL_5);
-        VRAIL = counts_rail * 0.015490435490435493;     // 51900. * 1.1 / 900. / 4095
+        if (counts_rail > 1.0) {
+            VRAIL = 0.013687839432180191 * counts_rail + 4.0;
+        } else {
+            VRAIL = 0.0;
+        }
 
-        printf("\ncounts_lipo = %.3f\n", counts_lipo);
-        printf("counts_rail = %.3f\n", counts_rail);
         printf("VLIPO = %.3f\n", VLIPO);
         printf("VRAIL = %.3f\n\n", VRAIL);
 
