@@ -232,7 +232,7 @@ bool modem_query_bearer(void) {
 
     _send_command("AT+SAPBR=2,1");
     int len_received;
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 100/portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 100/portTICK_PERIOD_MS);
     MODEM_BUF[len_received] = '\0';
     printf("BEARER STATUS = %s\n", MODEM_BUF);
 
@@ -345,7 +345,7 @@ void modem_ip_print(void) {
 
     _send_command("AT+CIPSTATUS");
     _confirm_ok(100);
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 100/portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 100/portTICK_PERIOD_MS);
     MODEM_BUF[len_received] = '\0';
     printf("IP = %s\n", MODEM_BUF);
 
@@ -394,7 +394,7 @@ bool modem_gps_get_nav(void) {
     int len_received;
 
     _send_command("AT+CGNSINF");    // nav info parsed from NMEA sentence
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 500/portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 500/portTICK_PERIOD_MS);
     MODEM_BUF[len_received] = '\0';
 
     //printf("CGNSINF = %s\n", MODEM_BUF);
@@ -474,7 +474,7 @@ static bool _confirm_response(const char *resp, uint64_t timeout_ms) {
     len_resp = strlen(resp);
     len_expected = len_resp + 4;    // \r\n<data>\r\n
 
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, len_expected, timeout_ms / portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, len_expected, timeout_ms / portTICK_PERIOD_MS);
 
     if (len_received != len_expected) {return false;}
     if (strncmp((char*)MODEM_BUF, "\r\n", 2)) {return false;}
@@ -492,7 +492,7 @@ static bool _confirm_ok(uint64_t timeout_ms) {
     uint8_t localbuf[6];
     int len_received;
 
-    len_received = uart_read_bytes(UART_NUM_1, localbuf, 6, timeout_ms / portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, localbuf, 6, timeout_ms / portTICK_PERIOD_MS);
 
     if (len_received != 6) {return false;}
     if (strncmp((char *) localbuf + 0, "\r\n", 2)) {return false;}
@@ -526,7 +526,7 @@ static bool _get_data(size_t len, uint64_t timeout_ms) {
 
     len_expected = len + 4;    // \r\n<data>\r\n
 
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, len_expected, timeout_ms / portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, len_expected, timeout_ms / portTICK_PERIOD_MS);
 
     if (len_received != len_expected) {return false;}
     if (strncmp((char*)MODEM_BUF, "\r\n", 2)) {return false;}
@@ -543,7 +543,7 @@ static bool _get_variable(uint64_t timeout_ms) {
 
     int len_received;
 
-    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, timeout_ms / portTICK_RATE_MS);
+    len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, timeout_ms / portTICK_PERIOD_MS);
     if (strncmp((char *) MODEM_BUF, "\r\n", 2)) {return false;}
     if (strncmp((char *) (MODEM_BUF + len_received - 2), "\r\n", 2)) {return false;}
 
