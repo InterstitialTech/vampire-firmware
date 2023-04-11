@@ -9,6 +9,7 @@ set(COMPONENT_SRCS
     "task_heartBeat.c"
     "task_adc.c"
     "task_modem.c"
+    "task_temp.c"
 )
     
 set(COMPONENT_ADD_INCLUDEDIRS "")
