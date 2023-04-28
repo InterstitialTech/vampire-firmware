@@ -1,6 +1,7 @@
 #include "common.h"
-
 #include "driver/adc.h"
+
+#define PERIOD_MS_ADC 5010
 
 // TODO handle volatile
 float VLIPO = 0.;
@@ -47,7 +48,7 @@ void task_adc(void *arg) {
         printf("VLIPO = %.3f\n", VLIPO);
         printf("VRAIL = %.3f\n\n", VRAIL);
 
-        delay_ms(30000);
+        delay_ms(PERIOD_MS_ADC);
 
     }
 

@@ -13,7 +13,7 @@
 #define PIN_MODEM_TX            27                                                                                        
 #define PIN_MODEM_DTR           25                                                                                        
 
-#define ACCESS_TOKEN "TOKEN"    // replace TOKEN with the real Access Token
+#define ACCESS_TOKEN "TOKEN"    // replace TOKEN with device-specific Access Token
 
 // global buffers
 uint8_t MODEM_BUF[MODEM_BUF_SIZE];

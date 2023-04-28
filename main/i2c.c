@@ -1,12 +1,6 @@
-#include "common.h"
-
-
 // from https://esp32tutorials.com/esp32-i2c-communication-tutorial-esp-idf/
 
 #include "driver/i2c.h"
-
-static const char *TAG = "i2c-master";
-
 
 #define I2C_MASTER_SCL_IO 22               /*!< gpio number for I2C master clock */
 #define I2C_MASTER_SDA_IO 21               /*!< gpio number for I2C master data  */
@@ -25,7 +19,8 @@ static const char *TAG = "i2c-master";
 
 #define I2C_PORT 0
 
-static esp_err_t i2c_init(void)
+
+esp_err_t i2c_init(void)
 {
   
     i2c_config_t conf = {
@@ -44,40 +39,56 @@ static esp_err_t i2c_init(void)
     return i2c_driver_install(I2C_PORT, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
-static esp_err_t i2c_send(const uint8_t *data, size_t len)
+esp_err_t i2c_write(uint8_t *buf, size_t len)
 {
     esp_err_t ret; 
+
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();    
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, I2C_ADDR7_SHTC3 << 1 | WRITE_BIT, ACK_CHECK_EN);
-    i2c_master_write(cmd, data, len, ACK_CHECK_DIS);
+    i2c_master_write(cmd, buf, len, ACK_CHECK_DIS);
     i2c_master_stop(cmd);
     
     ret = i2c_master_cmd_begin(I2C_PORT, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
+
     return ret;
 }
 
-// end
+esp_err_t i2c_read(uint8_t *buf, size_t len)
+{
+    esp_err_t ret; 
 
-// TODO handle volatile
-float TEMP = 0.;
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();    
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, I2C_ADDR7_SHTC3 << 1 | READ_BIT, ACK_CHECK_DIS);
+    i2c_master_read(cmd, buf, len, ACK_CHECK_DIS);
+    i2c_master_stop(cmd);
+    
+    ret = i2c_master_cmd_begin(I2C_PORT, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
 
-void task_temp(void *arg) {
-
-    const uint8_t on_command[] = "LED_ON";
-
-    i2c_init();
-
-    while (1) {
-
-        i2c_send(on_command, sizeof(on_command));
-        TEMP = 3.14;
-
-        printf("TEMP = %.3f\n\n", TEMP);
-
-        delay_ms(1000);
-
-    }
-
+    return ret;
 }
+
+esp_err_t i2c_read_reg(uint16_t reg_addr, uint8_t *buf, size_t len)
+{
+    esp_err_t ret; 
+    i2c_cmd_handle_t cmd;
+
+    cmd = i2c_cmd_link_create();    
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, I2C_ADDR7_SHTC3 << 1 | WRITE_BIT, ACK_CHECK_DIS);
+    i2c_master_write_byte(cmd, (reg_addr >> 8) & 0xFF, ACK_CHECK_DIS);
+    i2c_master_write_byte(cmd, reg_addr & 0xFF, ACK_CHECK_DIS);
+    i2c_master_start(cmd); // repeated start
+    i2c_master_write_byte(cmd, I2C_ADDR7_SHTC3 << 1 | READ_BIT, ACK_CHECK_DIS);
+    i2c_master_read(cmd, buf, len, ACK_CHECK_DIS);
+    i2c_master_stop(cmd);
+    
+    ret = i2c_master_cmd_begin(I2C_PORT, cmd, 1000 / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(cmd);
+
+    return ret;
+}
+

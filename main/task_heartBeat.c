@@ -1,5 +1,4 @@
 #include "driver/gpio.h"
-
 #include "common.h"
 
 #define PIN_LED                 12 
@@ -22,7 +21,7 @@ void task_heartBeat(void *arg) {
             delay_ms(100 );
         }
 
-        /* Off for one second */
+        /* Off for two seconds */
         gpio_set_level(PIN_LED, 1);
         delay_ms(1900 );
 

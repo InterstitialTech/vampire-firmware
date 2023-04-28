@@ -1,6 +1,8 @@
 #include "common.h"
 #include "modem.h"
 
+#define PERIOD_MS_UPLOAD 5000
+
 extern volatile uint16_t NBLINKS;
 
 extern bool FIX;
@@ -9,6 +11,9 @@ extern char LON[16];
 
 extern float VLIPO;
 extern float VRAIL;
+
+extern float TEMP;
+extern float HUMI;
 
 void task_modem(void *arg) {
 
@@ -42,6 +47,13 @@ void task_modem(void *arg) {
 
     while (1) {
 
+        // modem debug basics
+        if (modem_get_imei()) {
+            printf("\nIMEI: %s\n", modem_get_buffer_string(2, 15));
+        }
+        if (modem_get_imsi()) {
+            printf("\nIMSI: %s\n", modem_get_buffer_string(2, 15));
+        }
 
         // modem vitals
         fun = 255;
@@ -68,6 +80,7 @@ void task_modem(void *arg) {
         // try post
         if ((fun==1) && (reg==5) && (mode==7)) {
 
+
             // GPS Stuff
             if (modem_gps_get_nav()) {
                 printf("gps_get_nav success\n");
@@ -78,6 +91,7 @@ void task_modem(void *arg) {
 
             if (!modem_ip_is_gprsact()) {
                 while (!modem_ip_is_initial()) {
+                    printf("modem_ip_is_initial failed\n");
                     modem_ip_shut();
                     delay_ms(100);
                 }
@@ -91,10 +105,14 @@ void task_modem(void *arg) {
 
             // set payload
             if (FIX) {
-                sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f, \"latitude\":%s, \"longitude\":%s}",
-                        VLIPO, VRAIL, LAT, LON);
+                sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f, "
+                                    "\"temperature\":%.3f, \"humidity\":%.3f, "
+                                    "\"latitude\":%s, \"longitude\":%s}",
+                        VLIPO, VRAIL, TEMP, HUMI, LAT, LON);
             } else {
-                sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f}", VLIPO, VRAIL);
+                sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f, "
+                                    "\"temperature\":%.3f, \"humidity\":%.3f}",
+                        VLIPO, VRAIL, TEMP, HUMI);
             }
 
             // do HTTP POST
@@ -106,7 +124,7 @@ void task_modem(void *arg) {
                 NBLINKS = NBLINKS_NORMAL;
             }
 
-            delay_ms(60000);
+            delay_ms(PERIOD_MS_UPLOAD);
 
         } else {
             NBLINKS = NBLINKS_MODEM_FAILURE;
