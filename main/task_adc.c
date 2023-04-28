@@ -45,9 +45,6 @@ void task_adc(void *arg) {
             VRAIL = 0.0;
         }
 
-        printf("VLIPO = %.3f\n", VLIPO);
-        printf("VRAIL = %.3f\n\n", VRAIL);
-
         delay_ms(PERIOD_MS_ADC);
 
     }

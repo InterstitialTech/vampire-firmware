@@ -28,7 +28,6 @@ void task_shtc3(void *arg) {
 
         TEMP = shtc3_convert_temp(temp_raw);
         HUMI = shtc3_convert_humd(humi_raw);
-        printf("TEMP, HUMI = %f, %f\n\n", TEMP, HUMI);
 
         delay_ms(1000);
 

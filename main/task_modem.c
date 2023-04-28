@@ -9,11 +9,12 @@ extern bool FIX;
 extern char LAT[16];
 extern char LON[16];
 
-extern float VLIPO;
 extern float VRAIL;
-
+extern float VLIPO;
 extern float TEMP;
 extern float HUMI;
+
+#define MODEM_DEBUG 0
 
 void task_modem(void *arg) {
 
@@ -47,33 +48,34 @@ void task_modem(void *arg) {
 
     while (1) {
 
-        // modem debug basics
-        if (modem_get_imei()) {
-            printf("\nIMEI: %s\n", modem_get_buffer_string(2, 15));
-        }
-        if (modem_get_imsi()) {
-            printf("\nIMSI: %s\n", modem_get_buffer_string(2, 15));
+        if (MODEM_DEBUG) {
+            if (modem_get_imei()) {
+                printf("\nIMEI: %s\n", modem_get_buffer_string(2, 15));
+            }
+            if (modem_get_imsi()) {
+                printf("\nIMSI: %s\n", modem_get_buffer_string(2, 15));
+            }
         }
 
         // modem vitals
         fun = 255;
         if (!modem_get_functionality(&fun)) {
             printf("[ERROR] modem_get_functionality failed\n");
-        } else {
+        } else if (MODEM_DEBUG) {
             printf("Modem Functionality: %d\n", fun);
         }
 
         reg = 255;
         if (!modem_get_network_registration(&reg)) {
             printf("[ERROR] modem_get_network_registration failed\n");
-        } else {
+        } else if (MODEM_DEBUG) {
             printf("Network Registration Status: %d\n", reg);
         }
 
         mode = 255;
         if (!modem_get_network_system_mode(&mode)) {
             printf("[ERROR] modem_get_network_system_mode failed\n");
-        } else {
+        } else if (MODEM_DEBUG) {
             printf("Network System Mode: %d\n", mode);
         }
 
@@ -83,7 +85,6 @@ void task_modem(void *arg) {
 
             // GPS Stuff
             if (modem_gps_get_nav()) {
-                printf("gps_get_nav success\n");
                 modem_gps_parse_nav();
             } else {
                 printf("gps_get_nav failed\n");

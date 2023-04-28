@@ -234,7 +234,7 @@ bool modem_query_bearer(void) {
     int len_received;
     len_received = uart_read_bytes(UART_NUM_1, MODEM_BUF, MODEM_BUF_SIZE, 100/portTICK_PERIOD_MS);
     MODEM_BUF[len_received] = '\0';
-    printf("BEARER STATUS = %s\n", MODEM_BUF);
+    //printf("BEARER STATUS = %s\n", MODEM_BUF);
 
     return true;
 
@@ -438,10 +438,11 @@ bool modem_gps_parse_nav(void) {
     hpa = strsep(&ptr, ","); // token=
     vpa = strsep(&ptr, ","); // token=
 
-    printf("\nfix = %s\n", fix);
-    printf("nsats = %s\n", nsats);
-    printf("lat = %s\n", lat);
-    printf("lon = %s\n\n", lon);
+    printf("\nGPS Report:\n");
+    printf("\tfix = %s\n", fix);
+    printf("\tnsats = %s\n", nsats);
+    printf("\tlat = %s\n", lat);
+    printf("\tlon = %s\n\n", lon);
 
     FIX = !strcmp(fix, "1");
     if (FIX) {
