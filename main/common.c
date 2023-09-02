@@ -6,3 +6,10 @@ void delay_ms(unsigned long ms) {
 
 }
 
+void reset_system(void) {
+
+    printf("Resetting the system!\n");
+    esp_restart();
+
+}
+

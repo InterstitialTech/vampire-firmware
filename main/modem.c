@@ -438,12 +438,6 @@ bool modem_gps_parse_nav(void) {
     hpa = strsep(&ptr, ","); // token=
     vpa = strsep(&ptr, ","); // token=
 
-    printf("\nGPS Report:\n");
-    printf("\tfix = %s\n", fix);
-    printf("\tnsats = %s\n", nsats);
-    printf("\tlat = %s\n", lat);
-    printf("\tlon = %s\n\n", lon);
-
     FIX = !strcmp(fix, "1");
     if (FIX) {
         strcpy(LAT, lat);

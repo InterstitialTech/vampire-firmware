@@ -18,12 +18,6 @@ void task_heartBeat(void *arg) {
 
     while(1) {
 
-        printf("\nHeartbeat Report:\n");
-        printf("\tVRAIL = %.3f\n", VRAIL);
-        printf("\tVLIPO = %.3f\n", VLIPO);
-        printf("\tTEMP = %.3f\n", TEMP);
-        printf("\tHUMI = %.3f\n\n", HUMI);
-
         /* Blink NBLINKS times */
         for (int i=0; i<NBLINKS; i++) {
             gpio_set_level(PIN_LED, 0);
