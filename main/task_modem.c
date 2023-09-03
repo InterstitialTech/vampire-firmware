@@ -1,7 +1,8 @@
 #include "common.h"
 #include "modem.h"
 
-#define PERIOD_MS_UPLOAD 5000
+#define PERIOD_MS_UPLOAD    1*60*1000   // once per minute
+#define PERIOD_MS_UPLOAD_LP 60*60*1000  //once per hour
 
 extern volatile uint16_t NBLINKS;
 
@@ -14,13 +15,15 @@ extern float VLIPO;
 extern float TEMP;
 extern float HUMI;
 
+extern bool MODE_LP;
+
 #define MODEM_DEBUG 0
 
 static int NTRY_RESET = 0;
 
 void handle_failure() {
 
-    if (++NTRY_RESET >= NTRY_RESET_MAX) reset_system();
+    if (++NTRY_RESET >= MODEM_NTRY_MAX) reset_system();
     NBLINKS = NBLINKS_MODEM_FAILURE;
     delay_ms(1000);
 
@@ -29,11 +32,9 @@ void handle_failure() {
 void task_modem(void *arg) {
 
     uint8_t fun, reg, mode;  // modem vitals
-    char payload[128];
+    char payload[256];
 
     // bring up modem
-
-    NBLINKS = NBLINKS_MODEM_FAILURE;
 
     modem_setup();
     printf("setup: modem_setup\n");
@@ -43,7 +44,6 @@ void task_modem(void *arg) {
     printf("setup: modem_reset\n");
 
     // setup, loop through attempts
-    NTRY_RESET = 0;
     while (1) {
 
         if (!modem_init()) {
@@ -76,25 +76,6 @@ void task_modem(void *arg) {
             }
         }
 
-        // mini try loop
-        /*
-        int ntry_fun;
-        for (ntry_fun=0; ntry_fun<5; ntry_fun++) {
-            fun = 255;
-            if (!modem_get_functionality(&fun)) {
-                printf("[ERROR] modem_get_functionality failed\n");
-            } else {    
-                printf("Modem Functionality: %d\n", fun);
-                break;
-            }
-            delay_ms(1000);
-        }
-        if (ntry_fun == 5) {
-            handle_failure();
-            continue;
-        }
-        */
-        // asdf
         fun = 255;
         if (!modem_get_functionality(&fun)) {
             printf("[ERROR] modem_get_functionality failed\n");
@@ -137,7 +118,7 @@ void task_modem(void *arg) {
 
         if (!modem_ip_is_gprsact()) {
 
-            // lost the GPRS connect, need to repair
+            // lost the GPRS connection, need to repair
 
             // mini try loop, is_initial
             int ntry_init;
@@ -175,13 +156,15 @@ void task_modem(void *arg) {
         // set payload
         if (FIX) {
             sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f, "
+                                "\"lowPowerMode\":%d, "
                                 "\"temperature\":%.3f, \"humidity\":%.3f, "
                                 "\"latitude\":%s, \"longitude\":%s}",
-                    VLIPO, VRAIL, TEMP, HUMI, LAT, LON);
+                    VLIPO, VRAIL, MODE_LP, TEMP, HUMI, LAT, LON);
         } else {
             sprintf(payload, "{\"vlipo\":%.3f, \"vrail\":%.3f, "
+                                "\"lowPowerMode\":%d, "
                                 "\"temperature\":%.3f, \"humidity\":%.3f}",
-                    VLIPO, VRAIL, TEMP, HUMI);
+                    VLIPO, VRAIL, MODE_LP, TEMP, HUMI);
         }
 
         // do HTTP POST
@@ -192,11 +175,14 @@ void task_modem(void *arg) {
         }
         printf("modem_post_data succeeded\n");
 
-        printf("task_modem succeeded!\n");
-        NBLINKS = NBLINKS_NORMAL;
+        printf("~* task_modem succeeded! *~\n");
         NTRY_RESET = 0;
 
-        delay_ms(PERIOD_MS_UPLOAD);
+        if (MODE_LP) {
+            delay_ms(PERIOD_MS_UPLOAD_LP);
+        } else {
+            delay_ms(PERIOD_MS_UPLOAD);
+        }
 
     }
 

@@ -4,6 +4,7 @@
 #include "common.h"
 
 #define MODEM_BUF_SIZE 1024
+#define MODEM_NTRY_MAX 5
 
 void modem_setup(void);
 bool modem_init(void);

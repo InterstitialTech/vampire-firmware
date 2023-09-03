@@ -109,7 +109,7 @@ bool modem_init(void) {
     //if (!_send_confirm("AT+CMNB=3", "OK", 1000)) return false;  // cat-M and NB-IOT
 
     // not necessary?
-    if (!_send_confirm("AT+CGDCONT=1,\"IP\",\"soracom.io\"", "OK", 1000)) {printf("blarg\n"); return false;}
+    if (!_send_confirm("AT+CGDCONT=1,\"IP\",\"soracom.io\"", "OK", 1000)) return false;
     
     return true;
 
