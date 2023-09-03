@@ -18,10 +18,9 @@ void task_shtc3(void *arg) {
     i2c_init();
 
     const uint8_t cmd[] = "LED_ON";
-
     uint8_t buf[64];
-
     uint16_t temp_raw, humi_raw;
+    float temp_c;
 
     while (1) {
 
@@ -30,7 +29,8 @@ void task_shtc3(void *arg) {
         shtc3_GetTempAndHumidity(&temp_raw, &humi_raw);
         shtc3_sleep();
 
-        TEMP = shtc3_convert_temp(temp_raw);
+        temp_c = shtc3_convert_temp(temp_raw);
+        TEMP = temp_c * 1.8 + 32.0;
         HUMI = shtc3_convert_humd(humi_raw);
 
         delay_ms(1000);
